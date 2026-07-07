@@ -1,0 +1,7 @@
+Django>=5.0
+djangorestframework
+django-cors-headers
+firebase-admin>=7.4.0
+python-decouple
+gunicorn
+whitenoise
