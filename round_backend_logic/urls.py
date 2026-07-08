@@ -11,4 +11,5 @@ urlpatterns = [
     path("api/v1/lineage/", include("lineage.urls")),
     path("api/v1/", include("connections.urls")),
     path("api/v1/", include("feeds.urls")),
+    path("api/v1/", include("events.urls")),
 ]

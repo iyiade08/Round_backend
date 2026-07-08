@@ -1309,6 +1309,159 @@ Body:
 }
 ```
 
+## Events And RSVPs
+
+All event endpoints require:
+
+```http
+Authorization: Bearer <firebase_id_token>
+Content-Type: application/json
+```
+
+Visibility rules:
+
+- Public community published events can be viewed by authenticated users.
+- Private and invite-only community events can be viewed by active members.
+- Draft, cancelled, and completed events are visible to their creator and community officers.
+- Only community officers can create official community events.
+- Only the creator or community officers can update events.
+- Users can RSVP only to published events they are allowed to view.
+
+### List Events
+
+```http
+GET /events/
+```
+
+Optional query params:
+
+```text
+?community_id=community-uuid
+?category=celebration
+?status=published
+?starts_after=2026-07-08T00:00:00Z
+?starts_before=2026-08-01T00:00:00Z
+?search=reunion
+```
+
+Success response includes `my_rsvp`, `rsvps_count`, and `attending_count`.
+
+### Create Event
+
+Only community officers can create events.
+
+```http
+POST /events/
+```
+
+Body:
+
+```json
+{
+  "community_id": "community-uuid",
+  "title": "Family reunion",
+  "description": "Annual family reunion.",
+  "category": "celebration",
+  "starts_at": "2026-08-20T15:00:00Z",
+  "ends_at": "2026-08-20T18:00:00Z",
+  "timezone": "Africa/Lagos",
+  "location_name": "Lagos Hall",
+  "virtual_url": "",
+  "status": "published",
+  "metadata": {}
+}
+```
+
+Allowed `category` values:
+
+```text
+meeting, celebration, fundraiser, religious, education, sports, other
+```
+
+Allowed event `status` values:
+
+```text
+draft, published, cancelled, completed
+```
+
+Either `location_name` or `virtual_url` is required.
+
+### Get Event Detail
+
+```http
+GET /events/{event_id}/
+```
+
+### Update Event
+
+Only the event creator or community officers can update events.
+
+```http
+PATCH /events/{event_id}/
+```
+
+Body example:
+
+```json
+{
+  "title": "Updated family reunion",
+  "status": "published"
+}
+```
+
+### Create Or Update RSVP
+
+Use this when the logged-in user wants to RSVP. Calling it again updates their existing RSVP.
+
+```http
+POST /events/{event_id}/rsvp/
+```
+
+Body:
+
+```json
+{
+  "status": "attending",
+  "note": "I will come with two relatives."
+}
+```
+
+Allowed RSVP `status` values:
+
+```text
+attending, interested, declined
+```
+
+### Delete RSVP
+
+Use this to remove the logged-in user's RSVP.
+
+```http
+DELETE /events/{event_id}/rsvp/
+```
+
+Success response:
+
+```http
+204 No Content
+```
+
+### List Community Events
+
+```http
+GET /communities/{community_id}/events/
+```
+
+Optional query params:
+
+```text
+?category=meeting
+?status=published
+?starts_after=2026-07-08T00:00:00Z
+?starts_before=2026-08-01T00:00:00Z
+?search=reunion
+```
+
 ## Frontend Integration Notes
 
 The frontend developer should:
@@ -1425,10 +1578,16 @@ Implemented:
 - `POST /api/v1/communities/{community_id}/gallery/`
 - `GET /api/v1/communities/{community_id}/commerce/`
 - `POST /api/v1/communities/{community_id}/commerce/`
+- `GET /api/v1/events/`
+- `POST /api/v1/events/`
+- `GET /api/v1/events/{event_id}/`
+- `PATCH /api/v1/events/{event_id}/`
+- `POST /api/v1/events/{event_id}/rsvp/`
+- `DELETE /api/v1/events/{event_id}/rsvp/`
+- `GET /api/v1/communities/{community_id}/events/`
 
 Next backend modules:
 
-- Events
 - Finance
 - Marketplace
 - Investments

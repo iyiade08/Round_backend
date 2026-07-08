@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 
 from communities.models import Community, CommunityMembership
 from connections.models import Connection
+from events.permissions import visible_events_for_user
 
 from .serializers import (
     DashboardActivitySerializer,
@@ -56,13 +57,14 @@ class DashboardSummaryView(APIView):
         connections_count = Connection.objects.filter(
             Q(user_a=request.user) | Q(user_b=request.user)
         ).count()
+        events_count = visible_events_for_user(request.user).count()
 
         data = {
             "user": request.user,
             "stats": {
                 "connections": connections_count,
                 "communities": active_memberships.values("community_id").distinct().count(),
-                "events": 0,
+                "events": events_count,
                 "contributions": _format_money(contribution_total),
             },
             "savings": {},
