@@ -1115,6 +1115,200 @@ Body example:
 
 If `ancestors` or `historical_records` are included in a PATCH request, the backend replaces that list with the submitted list.
 
+## Community Hub Content
+
+All community hub endpoints require:
+
+```http
+Authorization: Bearer <firebase_id_token>
+Content-Type: application/json
+```
+
+Read access follows community visibility:
+
+- Public communities can be read by authenticated users.
+- Private and invite-only communities can be read by active members.
+- Creating member content requires active community membership.
+- Creating announcements requires a community officer role.
+
+### List Community Announcements
+
+```http
+GET /communities/{community_id}/announcements/
+```
+
+Optional query params:
+
+```text
+?category=meeting
+?search=reunion
+```
+
+### Create Community Announcement
+
+Only community officers can create announcements.
+
+```http
+POST /communities/{community_id}/announcements/
+```
+
+Body:
+
+```json
+{
+  "title": "Family meeting",
+  "body": "Meeting this weekend.",
+  "category": "meeting",
+  "is_pinned": true,
+  "status": "published"
+}
+```
+
+Allowed announcement `status` values:
+
+```text
+published, draft, archived
+```
+
+### List Community Forum Posts
+
+```http
+GET /communities/{community_id}/forum-posts/
+```
+
+Optional query params:
+
+```text
+?category=family-history
+?search=photos
+```
+
+### Create Community Forum Post
+
+Active community members can create forum posts.
+
+```http
+POST /communities/{community_id}/forum-posts/
+```
+
+Body:
+
+```json
+{
+  "title": "Who has old reunion photos?",
+  "body": "Please share any old family reunion photos.",
+  "category": "family-history",
+  "is_pinned": false
+}
+```
+
+Success response includes `replies_count`.
+
+### List Forum Replies
+
+```http
+GET /forum-posts/{post_id}/replies/
+```
+
+### Create Forum Reply
+
+Active community members can reply to active forum posts.
+
+```http
+POST /forum-posts/{post_id}/replies/
+```
+
+Body:
+
+```json
+{
+  "body": "I can ask my grandmother."
+}
+```
+
+### List Community Gallery
+
+```http
+GET /communities/{community_id}/gallery/
+```
+
+Optional query params:
+
+```text
+?media_type=image
+?search=reunion
+```
+
+### Create Gallery Item
+
+Active community members can create gallery items. Firebase Storage should upload the file first; Django stores the returned URL/path.
+
+```http
+POST /communities/{community_id}/gallery/
+```
+
+Body:
+
+```json
+{
+  "title": "Reunion photo",
+  "caption": "Family reunion photo.",
+  "media_type": "image",
+  "file_url": "https://example.com/reunion.jpg",
+  "storage_path": "communities/reunion.jpg",
+  "metadata": {
+    "width": 1200,
+    "height": 800
+  }
+}
+```
+
+Allowed `media_type` values:
+
+```text
+image, video, document, other
+```
+
+### List Community Commerce
+
+Use this for the community business directory.
+
+```http
+GET /communities/{community_id}/commerce/
+```
+
+Optional query params:
+
+```text
+?category=Agriculture
+?search=farms
+```
+
+### Create Community Business
+
+Active community members can create business listings.
+
+```http
+POST /communities/{community_id}/commerce/
+```
+
+Body:
+
+```json
+{
+  "name": "Okafor Farms",
+  "category": "Agriculture",
+  "description": "Family-owned produce business.",
+  "phone_number": "+2348000000000",
+  "email": "farms@example.com",
+  "website": "https://example.com",
+  "address": "Lagos, Nigeria",
+  "logo_url": "https://example.com/logo.png",
+  "storage_path": "businesses/logo.png",
+  "metadata": {}
+}
+```
+
 ## Frontend Integration Notes
 
 The frontend developer should:
@@ -1221,6 +1415,16 @@ Implemented:
 - `POST /api/v1/lineage/records/`
 - `GET /api/v1/lineage/records/{record_id}/`
 - `PATCH /api/v1/lineage/records/{record_id}/`
+- `GET /api/v1/communities/{community_id}/announcements/`
+- `POST /api/v1/communities/{community_id}/announcements/`
+- `GET /api/v1/communities/{community_id}/forum-posts/`
+- `POST /api/v1/communities/{community_id}/forum-posts/`
+- `GET /api/v1/forum-posts/{post_id}/replies/`
+- `POST /api/v1/forum-posts/{post_id}/replies/`
+- `GET /api/v1/communities/{community_id}/gallery/`
+- `POST /api/v1/communities/{community_id}/gallery/`
+- `GET /api/v1/communities/{community_id}/commerce/`
+- `POST /api/v1/communities/{community_id}/commerce/`
 
 Next backend modules:
 

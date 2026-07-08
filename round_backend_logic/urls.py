@@ -10,4 +10,5 @@ urlpatterns = [
     path("api/v1/dashboard/", include("dashboard.urls")),
     path("api/v1/lineage/", include("lineage.urls")),
     path("api/v1/", include("connections.urls")),
+    path("api/v1/", include("feeds.urls")),
 ]
