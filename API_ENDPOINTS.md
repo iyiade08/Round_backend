@@ -6,6 +6,12 @@ Base URL for local development:
 http://127.0.0.1:8000/api/v1
 ```
 
+Base URL for production:
+
+```text
+https://round-backend.onrender.com/api/v1
+```
+
 Frontend should authenticate users with Firebase Auth first, then send the Firebase ID token to Django on every protected request.
 
 All protected requests must include:
@@ -913,6 +919,202 @@ Success response:
 204 No Content
 ```
 
+## Lineage, Clans, Villages, And Family Branches
+
+All lineage endpoints require:
+
+```http
+Authorization: Bearer <firebase_id_token>
+Content-Type: application/json
+```
+
+### List Clans
+
+```http
+GET /lineage/clans/
+```
+
+Optional query params:
+
+```text
+?search=aro
+```
+
+Success response:
+
+```json
+[
+  {
+    "id": "clan-uuid",
+    "name": "Aro Clan",
+    "slug": "aro-clan",
+    "description": "Clan history and origin notes.",
+    "origin_location": "Abia, Nigeria",
+    "created_by": {
+      "id": "user-uuid",
+      "email": "owner@example.com",
+      "full_name": "Owner User",
+      "avatar_initials": "OU"
+    },
+    "created_at": "2026-07-08T12:00:00Z",
+    "updated_at": "2026-07-08T12:00:00Z"
+  }
+]
+```
+
+### List Villages
+
+```http
+GET /lineage/villages/
+```
+
+Optional query params:
+
+```text
+?clan_id=clan-uuid
+?search=umuahia
+```
+
+### List Family Branches
+
+```http
+GET /lineage/family-branches/
+```
+
+Optional query params:
+
+```text
+?clan_id=clan-uuid
+?village_id=village-uuid
+?community_id=community-uuid
+?search=okafor
+```
+
+### List Lineage Records
+
+Returns records the current user can view:
+
+- Public active records
+- Records created by the user
+- Records where the user has explicit access
+- Community records where the user is an active member
+
+```http
+GET /lineage/records/
+```
+
+Optional query params:
+
+```text
+?type=family_tree
+?visibility=public
+?clan_id=clan-uuid
+?village_id=village-uuid
+?family_branch_id=branch-uuid
+?community_id=community-uuid
+?search=okafor
+```
+
+### Create Lineage Record
+
+```http
+POST /lineage/records/
+```
+
+Body:
+
+```json
+{
+  "title": "Okafor Family Origins",
+  "type": "oral_history",
+  "summary": "Origins and early migration.",
+  "story": "The family migrated across several villages.",
+  "source": "Family elder interview",
+  "start_year": 1850,
+  "end_year": 1950,
+  "visibility": "private",
+  "clan_id": "clan-uuid",
+  "village_id": "village-uuid",
+  "family_branch_id": "branch-uuid",
+  "community_id": "community-uuid",
+  "allowed_user_ids": ["user-uuid"],
+  "editor_user_ids": ["elder-user-uuid"],
+  "ancestors": [
+    {
+      "full_name": "Eze Okafor",
+      "gender": "male",
+      "birth_year": 1850,
+      "death_year": null,
+      "relationship": "Patriarch",
+      "notes": "",
+      "order": 1
+    }
+  ],
+  "historical_records": [
+    {
+      "title": "Interview notes",
+      "description": "Notes from family elder.",
+      "record_date": null,
+      "source": "Oral interview",
+      "file_url": "",
+      "storage_path": "",
+      "order": 1
+    }
+  ],
+  "metadata": {
+    "region": "South East"
+  }
+}
+```
+
+Only `title` and `type` are required. The other fields are optional.
+
+Allowed `type` values:
+
+```text
+family_tree, oral_history, migration, biography, archive
+```
+
+Allowed `visibility` values:
+
+```text
+public, community, private
+```
+
+Allowed ancestor `gender` values:
+
+```text
+unknown, female, male
+```
+
+Success response includes the full record with nested clan, village, family branch, community, ancestors, and historical records.
+
+### Get Lineage Record Detail
+
+```http
+GET /lineage/records/{record_id}/
+```
+
+### Update Lineage Record
+
+Only the creator, explicit editors, or community officers can update a lineage record.
+
+```http
+PATCH /lineage/records/{record_id}/
+```
+
+Body example:
+
+```json
+{
+  "summary": "Updated family origin summary.",
+  "visibility": "community",
+  "editor_user_ids": ["elder-user-uuid"]
+}
+```
+
+If `ancestors` or `historical_records` are included in a PATCH request, the backend replaces that list with the submitted list.
+
 ## Frontend Integration Notes
 
 The frontend developer should:
@@ -1012,10 +1214,16 @@ Implemented:
 - `POST /api/v1/connections/requests/{request_id}/reject/`
 - `GET /api/v1/connections/`
 - `DELETE /api/v1/connections/{connection_id}/`
+- `GET /api/v1/lineage/clans/`
+- `GET /api/v1/lineage/villages/`
+- `GET /api/v1/lineage/family-branches/`
+- `GET /api/v1/lineage/records/`
+- `POST /api/v1/lineage/records/`
+- `GET /api/v1/lineage/records/{record_id}/`
+- `PATCH /api/v1/lineage/records/{record_id}/`
 
 Next backend modules:
 
-- Lineage
 - Events
 - Finance
 - Marketplace
